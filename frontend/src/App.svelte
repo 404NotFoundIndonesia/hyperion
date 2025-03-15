@@ -23,10 +23,10 @@
     obfuscatedContent,
     showContent,
   } from "./stores/selectedFileStore.js";
-  import { 
-    openFiles, 
-    openFolder, 
-    buildFileTree, 
+  import {
+    openFiles,
+    openFolder,
+    buildFileTree,
     exportFiles,
     removeAllFiles,
     unloadFile,
@@ -34,7 +34,7 @@
     obfuscateFile,
     toggleConfig,
   } from "./appActions.js";
-    import { sidebarWidth } from "./stores/uiStore";
+  import { sidebarWidth } from "./stores/uiStore";
 
   let previewOriginal = writable(true);
   let isMac = navigator.userAgent.includes("Mac");
@@ -46,6 +46,29 @@
   let menuContainer;
   let isMaximize = false;
   let activeMenu = null;
+  let isResizing = false;
+
+  function startResizing(event) {
+    isResizing = true;
+    const startX = event.clientX;
+    const startWidth = $sidebarWidth;
+
+    function resize(event) {
+      if (isResizing) {
+        const newWidth = startWidth + (event.clientX - startX);
+        sidebarWidth.set(Math.max(150, newWidth)); // Set a min width
+      }
+    }
+
+    function stopResizing() {
+      isResizing = false;
+      window.removeEventListener("mousemove", resize);
+      window.removeEventListener("mouseup", stopResizing);
+    }
+
+    window.addEventListener("mousemove", resize);
+    window.addEventListener("mouseup", stopResizing);
+  }
 
   function toggleMenu(name) {
     activeMenu = activeMenu === name ? null : name;
@@ -698,55 +721,60 @@
         : ''}"
     >
       {#if $selectedFiles.length > 0 && isOpen}
-        <div id="sidebarWidth" style="width:{$sidebarWidth}px">
-          <div
-            class="h-[40px] flex items-center p-1 px-2 pe-0.5 text-sm dark:text-white bg-black/5 dark:bg-white/5 border-r border-black/15 dark:border-white/15"
-          >
-            Imported Files
-            <!-- svelte-ignore a11y_consider_explicit_label -->
-            <div class="ms-auto">
-              <button
-                class="text-black dark:text-white disabled:opacity-50 p-2 enabled:cursor-pointer flex gap-1 items-center"
-                on:click={removeAllFiles}
-                disabled={$selectedFiles.length === 0}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  class="icon icon-tabler icons-tabler-outline icon-tabler-copy-minus"
-                  ><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path
-                    stroke="none"
-                    d="M0 0h24v24H0z"
-                  /><path
-                    d="M7 9.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667z"
-                  /><path
-                    d="M4.012 16.737a2 2 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1"
-                  /><path d="M11 14h6" /></svg
+        <div id="sidebar" style="width:{$sidebarWidth}px" class="flex relative dark:text-white bg-black/5 dark:bg-white/5">
+          <div class="w-full pe-2">
+            <div
+              class="h-[40px] flex items-center p-1 px-2 pe-0.5 text-sm"
+            >
+              Imported Files
+              <!-- svelte-ignore a11y_consider_explicit_label -->
+              <div class="ms-auto">
+                <button
+                  class="text-black dark:text-white disabled:opacity-50 p-2 enabled:cursor-pointer flex gap-1 items-center me-[-6px]"
+                  on:click={removeAllFiles}
+                  disabled={$selectedFiles.length === 0}
                 >
-              </button>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="icon icon-tabler icons-tabler-outline icon-tabler-copy-minus"
+                    ><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path
+                      stroke="none"
+                      d="M0 0h24v24H0z"
+                    /><path
+                      d="M7 9.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667z"
+                    /><path
+                      d="M4.012 16.737a2 2 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1"
+                    /><path d="M11 14h6" /></svg
+                  >
+                </button>
+              </div>
+            </div>
+            <div
+              class="sidebar-scroll text-sm overflow-x-auto overflow-y-auto h-[calc(100%-40px)] "
+              style=""
+            >
+              <ul
+                style="width: 100%"
+                class="flex flex-col min-h-full shrink-0 dark:text-white"
+              >
+                <!-- svelte-ignore a11y_click_events_have_key_events -->
+                <!-- svelte-ignore a11y_no_static_element_interactions -->
+                <div on:click={handleClick}>
+                  {@html renderTree($fileTree)}
+                </div>
+              </ul>
             </div>
           </div>
-          <div
-            class="sidebar-scroll text-sm overflow-x-auto overflow-y-auto h-[calc(100%-40px)] bg-black/5 dark:bg-white/5 border-r border-black/15 dark:border-white/15"
-            style=""
-          >
-            <ul style="width: 100%"
-              class="flex flex-col min-h-full shrink-0 dark:text-white"
-            >
-              <!-- svelte-ignore a11y_click_events_have_key_events -->
-              <!-- svelte-ignore a11y_no_static_element_interactions -->
-              <div on:click={handleClick}>
-                {@html renderTree($fileTree)}
-              </div>
-            </ul>
-          </div>
+          <!-- svelte-ignore a11y_no_static_element_interactions -->
+          <div class="resizer w-2 border-r border-black/10 dark:border-white/10 h-full absolute right-0 cursor-ew-resize" on:mousedown={startResizing}></div>
         </div>
       {/if}
       <div class="flex flex-col overflow-x-hidden overflow-y-auto grow">
