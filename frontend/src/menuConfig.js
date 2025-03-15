@@ -5,6 +5,9 @@ import {
   exportFiles, 
   removeAllFiles, 
   unloadSelectedFile,
+  obfuscateAll,
+  obfuscateSelectedFile,
+  toggleConfig,
 } from "./appActions.js";
 
 export const menuConfig = [
@@ -22,17 +25,9 @@ export const menuConfig = [
     {
       name: "Run",
       children: [
-        { name: "Obfuscate", action: () => console.log("Obfuscate") },
-        { name: "Obfuscate All", action: () => console.log("Obfuscate All") },
-        { name: "Configuration", action: () => console.log("Configuration") },
-        { name: "Single Line", action: () => console.log("Single Line") },
-        { name: "String Literal", action: () => console.log("String Literal") },
-        { name: "Loop Statement", action: () => console.log("Loop Statement") },
-        { name: "If Statement", action: () => console.log("If Statement") },
-        { name: "Constant Name", action: () => console.log("Constant Name") },
-        { name: "Variable Name", action: () => console.log("Variable Name") },
-        { name: "Function Name", action: () => console.log("Function Name") },
-        { name: "Remove Comments", action: () => console.log("Remove Comments") }
+        { name: "Obfuscate", action: async () => await obfuscateSelectedFile() },
+        { name: "Obfuscate All", action: async () => await obfuscateAll() },
+        { name: "Configuration", action: () => toggleConfig() },
       ]
     },
     {

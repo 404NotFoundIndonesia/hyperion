@@ -17,6 +17,7 @@ import {
 } from "../wailsjs/go/main/App";
 
 import { get } from "svelte/store";
+import { obfuscationConfig } from "./stores/configStore";
 
 export async function openFiles() {
   try {
@@ -137,4 +138,67 @@ export function unloadSelectedFile() {
   if (get(selectedFile) === get(selectedFile)) {
     selectedFile.set(null);
   }
+}
+
+export async function obfuscateAll() {
+  if (get(selectedFiles).length === 0) {
+    console.warn("No files selected!");
+    return;
+  }
+
+  try {
+    const newFilesContent = await ReadFilesContent(get(selectedFiles));
+    filesContent.update((fc) => ({ ...fc, ...newFilesContent }));
+    const updatedObfuscatedContent = { ...get(obfuscatedContent) };
+    for (let filePath of Object.keys(newFilesContent)) {
+      updatedObfuscatedContent[filePath] = await ObfuscateJS(
+        newFilesContent[filePath],
+        { ...get(obfuscationConfig) },
+      );
+    }
+    obfuscatedContent.set(updatedObfuscatedContent);
+    const filePaths = Object.keys(get(filesContent));
+    if (filePaths.length > 0 && !get(selectedFile)) {
+      selectedFile.set(filePaths[0]);
+    }
+  } catch (error) {
+    console.error("Error processing files:", error);
+  }
+}
+
+export async function obfuscateFile(filePath) {
+  if (!filePath || !get(filesContent)[filePath]) {
+    console.warn("Invalid file or file not found!");
+    return;
+  }
+
+  try {
+    const obfuscated = await ObfuscateJS(get(filesContent)[filePath], {
+      ...get(obfuscationConfig),
+    });
+
+    obfuscatedContent.update((oc) => ({ ...oc, [filePath]: obfuscated }));
+  } catch (error) {
+    console.error("Error obfuscating file:", error);
+  }
+}
+
+export async function obfuscateSelectedFile() {
+  const filePath = get(selectedFile);
+  if (!filePath || !get(filesContent)[filePath]) {
+    console.warn("Invalid file or file not found!");
+    return;
+  }
+  try {
+    const obfuscated = await ObfuscateJS(get(filesContent)[filePath], {
+      ...get(obfuscationConfig),
+    });
+    obfuscatedContent.update((oc) => ({ ...oc, [filePath]: obfuscated }));
+  } catch (error) {
+    console.error("Error obfuscating file:", error);
+  }
+}
+
+export function toggleConfig() {
+  document.getElementById("config-container").classList.toggle("hidden");
 }
