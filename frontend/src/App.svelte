@@ -34,6 +34,7 @@
     obfuscateFile,
     toggleConfig,
   } from "./appActions.js";
+    import { sidebarWidth } from "./stores/uiStore";
 
   let previewOriginal = writable(true);
   let isMac = navigator.userAgent.includes("Mac");
@@ -122,9 +123,16 @@
             isActive = firstChild[1].replace(/\//g, "\\") == get(selectedFile);
           }
           return isChildLeaf
-            ? `<div data-value="${firstChild[1]}" class="${isActive ? "opacity-100" : "opacity-50"} cursor-pointer pl-2 hover:opacity-100">${name}</div>`
+            ? `<div data-value="${firstChild[1]}" class="${isActive ? "opacity-100" : "opacity-50"} cursor-pointer pl-2 hover:opacity-100 flex gap-1 items-center">
+              <svg  xmlns="http://www.w3.org/2000/svg"  width="14"  height="14"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="shrink-0 icon icon-tabler icons-tabler-outline icon-tabler-file"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z" /></svg>
+              ${name}
+              </div>`
             : `<ul class="list-none pl-2">
-                <li class="pl-2 dark:text-white">${name}
+                <li class="pl-2 dark:text-white">
+                  <div class="flex gap-1 items-center">
+                  <svg  xmlns="http://www.w3.org/2000/svg"  width="14"  height="14"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="shrink-0 icon icon-tabler icons-tabler-outline icon-tabler-folder"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2" /></svg>
+                  ${name}
+                  </div>
                   ${renderTree(content)}
                 </li>
               </ul>`;
@@ -690,7 +698,7 @@
         : ''}"
     >
       {#if $selectedFiles.length > 0 && isOpen}
-        <div>
+        <div id="sidebarWidth" style="width:{$sidebarWidth}px">
           <div
             class="h-[40px] flex items-center p-1 px-2 pe-0.5 text-sm dark:text-white bg-black/5 dark:bg-white/5 border-r border-black/15 dark:border-white/15"
           >
@@ -726,11 +734,11 @@
             </div>
           </div>
           <div
-            class="sidebar-scroll overflow-x-auto overflow-y-auto h-[calc(100%-40px)] bg-black/5 dark:bg-white/5 border-r border-black/15 dark:border-white/15"
+            class="sidebar-scroll text-sm overflow-x-auto overflow-y-auto h-[calc(100%-40px)] bg-black/5 dark:bg-white/5 border-r border-black/15 dark:border-white/15"
             style=""
           >
-            <ul
-              class="flex flex-col min-w-52 max-w-72 min-h-full shrink-0 dark:text-white"
+            <ul style="width: 100%"
+              class="flex flex-col min-h-full shrink-0 dark:text-white"
             >
               <!-- svelte-ignore a11y_click_events_have_key_events -->
               <!-- svelte-ignore a11y_no_static_element_interactions -->
