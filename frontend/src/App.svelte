@@ -56,7 +56,7 @@
     function resize(event) {
       if (isResizing) {
         const newWidth = startWidth + (event.clientX - startX);
-        sidebarWidth.set(Math.max(150, newWidth)); // Set a min width
+        sidebarWidth.set(Math.max(150, newWidth));
       }
     }
 
@@ -180,7 +180,7 @@
             isActive = firstChild[1].replace(/\//g, "\\") == get(selectedFile);
           }
           return isChildLeaf
-            ? `<div data-value="${firstChild[1]}" class="${isActive ? "opacity-100" : "opacity-50"} cursor-pointer pl-2 hover:opacity-100 flex gap-1 items-center">
+            ? `<div data-value="${firstChild[1]}" class="${isActive ? "opacity-100" : "opacity-50"} cursor-pointer pl-4 hover:opacity-100 flex gap-1 items-center">
               <svg  xmlns="http://www.w3.org/2000/svg"  width="14"  height="14"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="shrink-0 icon icon-tabler icons-tabler-outline icon-tabler-file"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z" /></svg>
               ${name}
               </div>`
