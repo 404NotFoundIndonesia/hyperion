@@ -111,20 +111,18 @@
 
   async function selectFile(filePath) {
     if ($selectedFile === filePath) return;
-
+    expandParentFolders(filePath);
     selectedFile.set(filePath);
     fileTree.set(buildFileTree($selectedFiles));
+
     if (!get(filesContent)[filePath]) {
       const content = await ReadFilesContent([filePath]);
-
       filesContent.update((fc) => ({ ...fc, ...content }));
     }
-
     setTimeout(() => {
       const filteredIndex = $selectedFiles
-        .filter((file) => filesContent[file])
+        .filter((file) => get(filesContent)[file])
         .indexOf(filePath);
-
       if (buttons[filteredIndex]) {
         buttons[filteredIndex].scrollIntoView({
           behavior: "smooth",
@@ -132,29 +130,37 @@
         });
       }
     }, 50);
+    fileTree.set(buildFileTree($selectedFiles));
+  }
+
+  function expandParentFolders(filePath) {
+    const parts = filePath.split("\\");
+    collapsedFolders.update((state) => {
+      const newState = { ...state };
+      let currentPath = "";
+
+      for (let i = 1; i < parts.length - 1; i++) {
+        currentPath = parts[i];
+        newState[currentPath] = false;
+      }
+      return newState;
+    });
   }
 
   function handleClick(event) {
-    console.log("handleClick triggered", event.target);
-
     const target = event.target.closest("[data-value], [data-folder]");
 
     if (target) {
       const folderName = target.getAttribute("data-folder");
-      
+
       if (folderName) {
-        console.log("Folder clicked:", folderName);
         collapsedFolders.update((state) => {
           const newState = { ...state, [folderName]: !state[folderName] };
-          console.log("Updated collapsedFolders:", newState);
           return newState;
         });
-
-        console.log("Collapsed state after update:", get(collapsedFolders));
       } else {
         let value = target.getAttribute("data-value");
         value = value.replace(/\//g, "\\");
-        console.log("File selected:", value);
         selectFile(value);
       }
       fileTree.set(buildFileTree($selectedFiles));
@@ -162,11 +168,6 @@
   }
 
   function renderTree(tree) {
-    console.log(
-      "Rendering tree with collapsed folders:",
-      get(collapsedFolders),
-    );
-
     return Object.entries(tree)
       .map(([name, content]) => {
         const isLeaf = !(content && typeof content === "object");
