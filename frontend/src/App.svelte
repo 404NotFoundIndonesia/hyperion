@@ -34,7 +34,7 @@
     obfuscateFile,
     toggleConfig,
   } from "./appActions.js";
-  import { sidebarWidth } from "./stores/uiStore";
+  import { sidebarWidth, collapsedFolders } from "./stores/uiStore";
 
   let previewOriginal = writable(true);
   let isMac = navigator.userAgent.includes("Mac");
@@ -68,6 +68,13 @@
 
     window.addEventListener("mousemove", resize);
     window.addEventListener("mouseup", stopResizing);
+  }
+
+  function toggleFolder(name) {
+    collapsedFolders.update((state) => ({
+      ...state,
+      [name]: !state[name],
+    }));
   }
 
   function toggleMenu(name) {
@@ -107,7 +114,6 @@
 
     selectedFile.set(filePath);
     fileTree.set(buildFileTree($selectedFiles));
-    renderTree(get(fileTree));
     if (!get(filesContent)[filePath]) {
       const content = await ReadFilesContent([filePath]);
 
@@ -129,19 +135,43 @@
   }
 
   function handleClick(event) {
-    const target = event.target.closest("[data-value]");
+    console.log("handleClick triggered", event.target);
+
+    const target = event.target.closest("[data-value], [data-folder]");
+
     if (target) {
-      let value = target.getAttribute("data-value");
-      value = value.replace(/\//g, "\\");
-      selectFile(value);
+      const folderName = target.getAttribute("data-folder");
+      
+      if (folderName) {
+        console.log("Folder clicked:", folderName);
+        collapsedFolders.update((state) => {
+          const newState = { ...state, [folderName]: !state[folderName] };
+          console.log("Updated collapsedFolders:", newState);
+          return newState;
+        });
+
+        console.log("Collapsed state after update:", get(collapsedFolders));
+      } else {
+        let value = target.getAttribute("data-value");
+        value = value.replace(/\//g, "\\");
+        console.log("File selected:", value);
+        selectFile(value);
+      }
+      fileTree.set(buildFileTree($selectedFiles));
     }
   }
 
   function renderTree(tree) {
+    console.log(
+      "Rendering tree with collapsed folders:",
+      get(collapsedFolders),
+    );
+
     return Object.entries(tree)
       .map(([name, content]) => {
         const isLeaf = !(content && typeof content === "object");
         if (!isLeaf) {
+          const isCollapsed = get(collapsedFolders)[name] ?? false;
           const firstChild = Object.entries(content)[0];
           const isChildLeaf =
             firstChild && !(firstChild[1] && typeof firstChild[1] === "object");
@@ -154,15 +184,19 @@
               <svg  xmlns="http://www.w3.org/2000/svg"  width="14"  height="14"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="shrink-0 icon icon-tabler icons-tabler-outline icon-tabler-file"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z" /></svg>
               ${name}
               </div>`
-            : `<ul class="list-none pl-2">
-                <li class="pl-2 dark:text-white">
-                  <div class="flex gap-1 items-center">
-                  <svg  xmlns="http://www.w3.org/2000/svg"  width="14"  height="14"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="shrink-0 icon icon-tabler icons-tabler-outline icon-tabler-folder"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2" /></svg>
-                  ${name}
-                  </div>
-                  ${renderTree(content)}
-                </li>
-              </ul>`;
+            : `
+          <ul class="list-none pl-2">
+            <li class="pl-2 dark:text-white">
+              <div data-folder="${name}" class="flex gap-1 items-center cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 icon icon-tabler icons-tabler-outline icon-tabler-folder">
+                  <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                  <path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2" />
+                </svg>
+                ${name}
+              </div>
+              ${isCollapsed ? "" : renderTree(content)}
+            </li>
+          </ul>`;
         }
       })
       .join("");
@@ -728,7 +762,7 @@
         <div
           id="sidebar"
           style="width:{$sidebarWidth}px"
-          class="flex relative dark:text-white bg-black/5 dark:bg-white/5"
+          class="flex relative dark:text-white bg-black/5 dark:bg-white/5 shrink-0"
         >
           <div class="w-full pe-2">
             <div class="h-[40px] flex items-center p-1 px-2 pe-0.5 text-sm">
