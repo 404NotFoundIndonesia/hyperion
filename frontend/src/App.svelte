@@ -88,6 +88,10 @@
     }
   }
 
+  sidebarWidth.subscribe((value) => {
+    localStorage.setItem("sidebarWidth", value);
+  });
+
   onMount(() => {
     document.addEventListener("click", handleClickOutside);
   });
@@ -721,11 +725,13 @@
         : ''}"
     >
       {#if $selectedFiles.length > 0 && isOpen}
-        <div id="sidebar" style="width:{$sidebarWidth}px" class="flex relative dark:text-white bg-black/5 dark:bg-white/5">
+        <div
+          id="sidebar"
+          style="width:{$sidebarWidth}px"
+          class="flex relative dark:text-white bg-black/5 dark:bg-white/5"
+        >
           <div class="w-full pe-2">
-            <div
-              class="h-[40px] flex items-center p-1 px-2 pe-0.5 text-sm"
-            >
+            <div class="h-[40px] flex items-center p-1 px-2 pe-0.5 text-sm">
               Imported Files
               <!-- svelte-ignore a11y_consider_explicit_label -->
               <div class="ms-auto">
@@ -758,7 +764,7 @@
               </div>
             </div>
             <div
-              class="sidebar-scroll text-sm overflow-x-auto overflow-y-auto h-[calc(100%-40px)] "
+              class="sidebar-scroll text-sm overflow-x-auto overflow-y-auto h-[calc(100%-40px)]"
               style=""
             >
               <ul
@@ -774,7 +780,10 @@
             </div>
           </div>
           <!-- svelte-ignore a11y_no_static_element_interactions -->
-          <div class="resizer w-2 border-r border-black/10 dark:border-white/10 h-full absolute right-0 cursor-ew-resize" on:mousedown={startResizing}></div>
+          <div
+            class="resizer w-2 border-r border-black/10 dark:border-white/10 h-full absolute right-0 cursor-ew-resize"
+            on:mousedown={startResizing}
+          ></div>
         </div>
       {/if}
       <div class="flex flex-col overflow-x-hidden overflow-y-auto grow">
