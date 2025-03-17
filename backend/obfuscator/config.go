@@ -19,7 +19,7 @@ type Config struct {
 	path             string
 }
 
-func NewConfig() Config {
+func NewConfig() *Config {
 	var config Config
 
 	err := config.load()
@@ -31,9 +31,7 @@ func NewConfig() Config {
 		log.Fatal(err)
 	}
 
-	log.Println("Hyperion config:", config.path)
-
-	return config
+	return &config
 }
 
 func (config *Config) load() error {
@@ -82,4 +80,8 @@ func (config *Config) Save(c Config) {
 
 func (config *Config) GetConfig() Config {
 	return *config
+}
+
+func (config *Config) GetPath() string {
+	return config.path
 }
