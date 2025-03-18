@@ -10,10 +10,10 @@ import (
 
 type Obfuscator struct {
 	ctx    context.Context
-	config Config
+	config *Config
 }
 
-func NewObfuscator(config Config) *Obfuscator {
+func NewObfuscator(config *Config) *Obfuscator {
 	return &Obfuscator{
 		config: config,
 	}
@@ -110,8 +110,4 @@ func (o *Obfuscator) Obfuscate(path string) (string, error) {
 	}
 
 	return content, nil
-}
-
-func (o *Obfuscator) Config() Config {
-	return o.config
 }
