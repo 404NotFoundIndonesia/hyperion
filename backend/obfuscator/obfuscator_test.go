@@ -12,7 +12,7 @@ import (
 var Examples embed.FS
 
 func TestNewObfuscator(t *testing.T) {
-	config := obf.Config{}
+	config := &obf.Config{}
 	obfuscator := obf.NewObfuscator(config)
 
 	assert.NotNil(t, obfuscator)
