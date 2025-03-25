@@ -6,6 +6,7 @@ import (
 	fs "hyperion/backend/filesystem"
 	ob "hyperion/backend/obfuscator"
 	"log"
+	"runtime"
 
 	"github.com/wailsapp/wails/v2/pkg/application"
 	"github.com/wailsapp/wails/v2/pkg/options"
@@ -72,7 +73,9 @@ func main() {
 			WindowIsTranslucent: true,
 		},
 	})
-	hyperion.SetApplicationMenu(menu.CreateMenu(hyperion))
+	if runtime.GOOS == "darwin" {
+		hyperion.SetApplicationMenu(menu.CreateMenu(hyperion))
+	}
 
 	if err := hyperion.Run(); err != nil {
 		log.Fatal(err)
